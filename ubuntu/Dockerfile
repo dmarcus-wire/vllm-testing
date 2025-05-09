@@ -1,18 +1,20 @@
-# Base Ubuntu image (match to your preferred version, e.g., 22.04)
-FROM ubuntu:22.04
+# Use NVIDIA CUDA base image built on UBI9 minimal
+FROM nvidia/cuda:12.4.1-devel-ubi9
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    python3 python3-pip git gcc g++ make curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (microdnf for UBI)
+RUN microdnf update -y && microdnf install -y \
+    python3 python3-pip git gcc gcc-c++ make curl \
+    && microdnf clean all
 
-# Install CUDA-compatible PyTorch (adjust CUDA version if needed)
-RUN pip3 install --upgrade pip \
-    && pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# Upgrade pip + install CUDA-compatible PyTorch
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
 # Install vLLM (latest)
-RUN pip3 install vllm
+RUN python3 -m pip install vllm
 
-# Default command (can be overridden)
+# Set working directory
+WORKDIR /workspace
+
+# Default command (can be overridden at runtime)
 CMD ["bash"]

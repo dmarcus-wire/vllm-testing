@@ -217,7 +217,39 @@ CMD ["bash"]
 ### Build the container
 
 ```bash
-podman build -t vllm-ubuntu .
+podman build -t vllm-ubuntu-tinyllama ubuntu/.
+```
+
+
+```bash
+$ podman images
+REPOSITORY                       TAG         IMAGE ID      CREATED        SIZE
+localhost/vllm-ubuntu-tinyllama  latest      a4120b79c563  2 minutes ago  21.3 GB
+docker.io/vllm/vllm-openai       latest      5068c8d73dbd  7 days ago     17.4 GB
+docker.io/library/ubuntu         22.04       c42dedf797ba  11 days ago    80.4 MB
+```
+
+### Run the container
+
+On the NVIDIA T4 without --gpu-memory-utilization set, you get torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 500.00 MiB. GPU 0 has a total capacity of 14.56 GiB of which 44.81 MiB is free. Including non-PyTorch memory, this process has 4.22 GiB memory in use. Of the allocated memory 4.01 GiB is allocated by PyTorch, and 74.75 MiB is reserved by PyTorch but unallocated.
+
+- Your GPU (Tesla T4) has ~14.5 GiB usable VRAM.
+- TinyLlama-1.1B model weights fit perfectly (only ~2 GiB)
+- After loading weights (~2 GiB) and accounting for runtime,
+- During vLLM’s KV cache allocation, it still ran out of memory.
+- vLLM tries to preallocate ~10–11 GiB for KV cache for maximum batching/concurrency.
+- It hit CUDA OOM when trying to allocate ~500 MiB more for cache.
+
+```bash
+podman run --rm -it \
+  --security-opt=label=disable \
+  --device nvidia.com/gpu=all \
+  -p 8001:8000 \
+  localhost/vllm-ubuntu-tinyllama \
+  python3 -m vllm.entrypoints.openai.api_server \
+    --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
+    --dtype=half
+    --gpu-memory-utilization 0.4
 ```
 
 ## UBI9 testing
