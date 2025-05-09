@@ -10,7 +10,7 @@ RUN pip install --upgrade pip \
     && pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 # Install vLLM (latest version)
-RUN pip install vllm
+RUN pip install vllm[audio]==0.8.5
 
 # Set container to use bash shell
 CMD ["/bin/bash"]
