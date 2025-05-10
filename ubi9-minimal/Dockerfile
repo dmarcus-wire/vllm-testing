@@ -6,11 +6,11 @@ RUN microdnf install -y python3 python3-pip gcc git \
     && microdnf clean all
 
 # Install CUDA-compatible PyTorch (make sure to match your CUDA version, e.g., 11.8 or 12.x)
-RUN pip install --upgrade pip \
-    && pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+RUN pip install --no-cache --upgrade pip \
+    && pip install --no-cache torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 # Install vLLM (latest version)
-RUN pip install vllm[audio]==0.8.5
+RUN pip install --no-cache vllm[audio]==0.8.5
 
 # Set container to use bash shell
 CMD ["/bin/bash"]
