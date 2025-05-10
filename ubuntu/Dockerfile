@@ -13,15 +13,16 @@ RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install huggingface_hub vllm[audio]==0.8.5
 
 # Provide HF token at build time (via --build-arg)
-ARG HF_TOKEN
-RUN huggingface-cli login --token $HF_TOKEN
+# We don't want to save our token in the container
+# ARG HF_TOKEN
+# RUN huggingface-cli login --token $HF_TOKEN
 
 # Set model name (default to openai/whisper-tiny.en, override at build time)
 ARG MODEL_NAME=openai/whisper-tiny.en
 ARG MODEL_DIR=/workspace/models/${MODEL_NAME}
 
 # Download the model and place it inside the container
-RUN huggingface-cli download $MODEL_NAME --local-dir $MODEL_DIR --local-dir-use-symlinks False
+RUN huggingface-cli download $MODEL_NAME --local-dir $MODEL_DIR
 
 # Set working directory
 WORKDIR /workspace
