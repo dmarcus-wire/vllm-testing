@@ -1,4 +1,4 @@
-# RTFM efforts
+# RTFM efforts to use `vllm serve` with `whisper`
 
 - https://docs.vllm.ai/en/v0.8.5/deployment/docker.html
 - https://github.com/vllm-project/vllm/issues/16724
