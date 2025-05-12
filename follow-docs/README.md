@@ -62,6 +62,38 @@ curl -X POST http://localhost:8000/v1/audio/transcriptions \
   -F response_format=text
 ```
 
+## Use vLLM’s Official Docker Image - [source](https://docs.vllm.ai/en/latest/deployment/docker.html#deployment-docker-pre-built-image)
+
+This work.
+
+```bash
+# Make sure to have access to it at https://huggingface.co/mistralai/Mistral-7B-v0.1.
+
+# Create the directory before running the container
+mkdir -p ~/.cache/huggingface
+
+# Set your HuggingFace token
+HF_TOKEN=<your_huggingface_token>
+
+podman run --gpus all \
+  -v ~/.cache/huggingface:/root/.cache/huggingface \
+  --env "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+  -p 8000:8000 \
+  --ipc=host \
+  vllm/vllm-openai:latest \
+  --model mistralai/Mistral-7B-v0.1
+```
+
+```bash
+curl http://localhost:8000/v1/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "mistralai/Mistral-7B-v0.1",
+    "prompt": "Tell me about Red Hat,",
+    "max_tokens": 50
+  }'
+```
+
 ## Result
 
 ```sh
