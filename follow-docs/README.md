@@ -73,7 +73,7 @@ This work.
 mkdir -p ~/.cache/huggingface
 
 # Set your HuggingFace token
-HF_TOKEN=<your_huggingface_token>
+export HF_TOKEN="<your_huggingface_token>"
 
 podman run --gpus all \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
@@ -137,8 +137,32 @@ curl http://localhost:8000/v1/audio/transcriptions \
 
 #### Test with vllm/vllm-openai:v0.8.5.post1
 
+```bash
+# Build the Dockerfile with the same version
+podman build -t vllm-latest -f follow-docs/Dockerfile.latest follow-docs/
 
+# Test it
+podman run --rm -it \
+  --security-opt=label=disable \
+  --device nvidia.com/gpu=all \
+  -p 8000:8000 \
+  -v ~/.cache/huggingface:/root/.cache/huggingface:Z \
+  --env HUGGING_FACE_HUB_TOKEN=$HF_TOKEN \
+  vllm-latest \
+  --model openai/whisper-tiny.en \
+  --task transcription \
+  --dtype=half
 
+# Transcribe
+curl http://localhost:8000/v1/audio/transcriptions \
+  -X POST \
+  -H "Content-Type: multipart/form-data" \
+  -F file=@sample/harvard.wav \
+  -F model=openai/whisper-tiny.en
+
+# expected output
+# {"text":" The stale smell of old beer lingers. It takes heat to bring out the odor. A cold dip restores health and zest. A salt pickle tastes fine with ham. Tacos al pastor are my favorite. A zestful food is the hot cross bun."}
+```
 
 ## Result
 
