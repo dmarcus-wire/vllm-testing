@@ -154,8 +154,7 @@ huggingface-cli download openai/whisper-tiny.en --local-dir ubuntu/audio/whisper
 tree .
 
 # Build it
-podman build -t vllm-whisper-offline -f ubuntu/audio/Dockerfile.whisper-offline ubuntu/
-
+podman build -t vllm-whisper-offline -f ubuntu/audio/Dockerfile.offline ubuntu/
 
 # Run it
 podman run --rm -it \
