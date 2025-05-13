@@ -18,18 +18,23 @@ podman search vllm
 podman pull docker.io/vllm/vllm-openai
 
 # check the baseos
-skopeo inspect docker://docker.io/vllm/vllm-openai | jq '.Labels'/vllm-openai | jq '.Labels'
-{
-  "maintainer": "NVIDIA CORPORATION <cudatools@nvidia.com>",
-  "org.opencontainers.image.ref.name": "ubuntu",
-  "org.opencontainers.image.version": "22.04"
+skopeo inspect docker://docker.io/vllm/vllm-openai | jq '.Labels'
+
+# output
+# {
+#   "maintainer": "NVIDIA CORPORATION <cudatools@nvidia.com>",
+#   "org.opencontainers.image.ref.name": "ubuntu",
+#   "org.opencontainers.image.version": "22.04"
+# }
 ```
 
 ## Review supported vLLM models [here](https://docs.vllm.ai/en/latest/models/supported_models.html#list-of-text-only-language-models)
 
+The shortlist meets these criteria:
+
 1. top-ranked models from the Hugging Face LLM leaderboard that
 2. are supported by vLLM
-3. fit under ~14.5 GiB (so they can run on a Tesla T4 GPU without crashing)
+3. fit under ~14.5 GiB
 
 | **Model** | **Approx. Parameters** | **Main Task(s)**| **Why It Fits on T4** |
 | ---------------------------------- | ---------------------- | --------------------------------------- | -------------------------------------------------- |
@@ -47,14 +52,17 @@ skopeo inspect docker://docker.io/vllm/vllm-openai | jq '.Labels'/vllm-openai | 
 
 Explanation of Tasks:
 
-1. hat → Conversational agents, dialogue systems
+1. Chat → Conversational agents, dialogue systems
 1. Instruction → Follows user prompts, task-specific
 1. Summarization → Text summarization, document compression
 1. Reasoning → Multi-step logic, Q&A, problem-solving
 1. Multilingual → Supports multiple languages
 
+### GPU
+
 ```bash
-# terminal 1
+# Terminal 1
+# Run it
 podman run --rm -it \
   --security-opt=label=disable \
   --device nvidia.com/gpu=all \
@@ -63,31 +71,66 @@ podman run --rm -it \
   --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
   --dtype=half \
   --gpu-memory-utilization 0.7
-```
 
-```
-# success
-...
-INFO:     Started server process [1]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
+# Expected output
+# ...
+# INFO:     Started server process [1]
+# INFO:     Waiting for application startup.
+# INFO:     Application startup complete.
 ```
 
 ```bash
-# terminal 2
-# prompt the model Hello, TinyLlama! How are you today?
+# Terminal 2
+# Prompt the model Hello, TinyLlama! How are you today?
 curl http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
         "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         "messages": [
-          {"role": "user", "content": "Hello, TinyLlama! How are you today?"}
+          {"role": "user", "content": "Tell me about Red Hat?"}
         ]
       }'
 
 # response sample
-{"id":"chatcmpl-4dc4330a45de44f7b1f9fd651754346e","object":"chat.completion","created":1746809788,"model":"TinyLlama/TinyLlama-1.1B-Chat-v1.0","choices":[{"index":0,"message":{"role":"assistant","reasoning_content":null,"content":"I don't have the capability to have a voice or a personal schedule like humans do; however, I can say that I am doing my best to help you today. If you have any questions or concerns, please don't hesitate to reach out to me through this chat app or any other preferred communication method. I hope you enjoy the chat with me!","tool_calls":[]},"logprobs":null,"finish_reason":"stop","stop_reason":null}],"usage":{"prompt_tokens":29,"total_tokens":105,"completion_tokens":76,"prompt_tokens_details":null},"prompt_logprobs":null}
+# {"id":"chatcmpl-fe19985ece584222ab12376a73a71325","object":"chat.completion","created":1747102800,"model":"TinyLlama/TinyLlama-1.1B-Chat-v1.0","choices":[{"index":0,"message":{"role":"assistant","reasoning_content":null,"content":"Red Hat (NYSE: RHT) is a global provider of enterprise open source solutions, using a community-powered approach to deliver high-performing technologies that help manage and install Linux, mainframe, cloud, and hybrid cloud environments. Led by a global leader team that provides customers with the best technical support, Red Hat operates under the business principles of unparalleled customer success, community love, and responsible innovation. As an open source-friendly company, Red Hat operates as a community-powered board made up of technical experts, each contributing their specific areas of expertise to the Red Hat Open Source Foundation (OFO). This means they monitor compliance with open source business models, work towards specific goals and policies, and contribute their community expertise with passionate coopereness towards Red Hat's initiatives from strategic and business standpoint. Red Hat's products and services are built on the operating system technology of the Linux Foundation's Linux Foundation Linux Foundation Linux Foundation. With over 30,000 customers and 300 partners across 180 countries, the company is a software industry leader driving necessary technological solutions to power, enable and simplify online business.\n\nKey Benefits of Working with Red Hat:\nRed Hat provides comprehensive cloud-enabled computing solutions, helping customers transform their IT initiatives and create digitally enabled businesses. Some of the key benefits include:\n\n1. Comprehensive Cloud Portfolio: Red Hat delivers the industry's largest portfolio of cloud-native applications and services that power cloud applications.\n\n2. Scalable Platform: Ensures the fastest speed for development and deployment while enabling customers to create scalable cloud-native solutions with innovative intelligence solutions.\n\n3. Enterprise-Grade Service: Providing state-of-the-art security, resiliency, and stability-model solutions to help optimize provider migration in all environments.\n\n4. Enhanced Power to Boost Business Growth: Provides enterprise-class, scalable and secure cloud computing and IoT solutions for maximum business growth.\n\n5. End-to-end Digitalization: Enhances business transformation with the technology and infrastructure alongside key digital services to accelerate journey towards digital.\n\nReasons to Choose Red Hat:\n\n1. Open Source Provides Workaround: Provides a community-backed ongoing support based on open source.\n\n2. Stay Directly on the Open Source Framework: With the advantage of immediacy, Red Hat helps companies remain up-to-date with latest releases based on Open Source technologies.\n\n3. Industry-First EULA: Red Hat Legal guaranteeing its customers' and partners’ EULA allowing them to do as per open standards.\n\n4. Comprehensive Software Development: Red Hat provides the inclusive support for software development as world-renowned open-source community.\n\n5. Product Requests and Reviews Support: Red Hat is the trusted source for reviewing, maintaining, and supporting its software, ensuring nothing falls down to manufacturing.\n\nRed Hat and Its Technological Solutions:\n\nHere are some of Red Hat's technological solutions:\n\n1. OpenShift Container Platform: An open-source container delivery system, available in two editions providing containers and Kubernetes support.\n\n2. Open Storage Solutions: Offers Ironic, Ceph-based storage, fault tolerance and scale for burgeoning IT infrastructure.\n\n3. Red Hat OpenStack Platform: The industry leading OpenStack software solution supports labor, available on-demand to deliver a secure cloud.\n\n4. Red Hat Open Source Center: Offers an interactive and easy-to-use, access optimized marketplace, providing customers the chance to buy and hang with supported and ready-made open-source applications.\n\nIn conclusion, Red Hat, a leading provider of enterprise open source solutions, operates under the sole-setting of a community-powered board, where technical experts contribute their critical expertise in specific community domains with a vision to unite the technologies and deliver unmatched technological solutions and services. With its core and diverse products, enabling open-source innovation, it operates as a distinct innovation force to be reckoned with. Red Hat's comprehensive ecosystem of cloud-native applications, such as OpenShift, OpenStack, Red Hat Enterprise Linux, Red Hat middleware, builds distinct business value for companies in various industry domains.","tool_calls":[]},"logprobs":null,"finish_reason":"stop","stop_reason":null}],"usage":{"prompt_tokens":23,"total_tokens":997,"completion_tokens":974,"prompt_tokens_details":null},"prompt_logprobs":null}
 ```
+
+This container:
+
+1. Serves a model with vllm
+1. Uses FastAPI to expose an OpenAI-compatible API
+1. Accepts inference requests on port 8000
+1. Is connected download the model from Hugging Face at runtime --model TinyLlama/TinyLlama-1.1B-Chat-v1.0
+
+#### CPU
+
+```bash
+podman run --rm -it \
+  -p 8000:8000 \
+  docker.io/vllm/vllm-openai \
+  --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
+  --device cpu \
+  --dtype float32 \
+  --disable-async-output-proc
+
+# Expected output
+# TypeError: unsupported operand type(s) for +: 'int' and 'NoneType'
+# ...
+# RuntimeError: Engine process failed to start. See stack trace for the root cause.
+```
+
+`self.max_seq_len_to_capture` is None, and vLLM tries to add it to an int. This is an internal bug where the CPU logic path doesn't initialize all config values properly — especially when using the older fallback engine (V0), which we hit due to:
+
+- `--device cpu`
+- `--disable-async-output-proc`
+- `--worker-cls vllm.worker.worker.Worker`
+
+**So is CPU support broken?**
+Yes — as of v0.8.5.post1, vLLM's CPU support is incomplete and unstable, especially for models like TinyLlama, and:
+
+- V1 Engine doesn’t yet support CPU
+- V0 Engine is legacy and mostly tuned for GPU logic
+- Many configurations (like memory size, block manager, etc.) are not correctly initialized on CPU fallback
 
 ## Audio
 
@@ -102,14 +145,12 @@ Explanation of Tasks:
 ### Connected Environments
 
 ```bash
+# Terminal 1
 # Create the directory before running the container
 mkdir -p ~/.cache/huggingface
 
-# Set your HuggingFace token
-export HF_TOKEN="<your_huggingface_token>"
-
 # Build the Dockerfile with the same version
-podman build -t vllm-latest -f follow-docs/Dockerfile.latest follow-docs/
+podman build -t vllm-whisper-basic -f ubuntu/Dockerfile.basic ubuntu/
 
 # Test it
 podman run --rm -it \
@@ -117,12 +158,12 @@ podman run --rm -it \
   --device nvidia.com/gpu=all \
   -p 8000:8000 \
   -v ~/.cache/huggingface:/root/.cache/huggingface:Z \
-  --env HUGGING_FACE_HUB_TOKEN=$HF_TOKEN \
-  vllm-latest \
+  vllm-whisper-basic \
   --model openai/whisper-tiny.en \
   --task transcription \
   --dtype=half
 
+# Terminal 2
 # Transcribe
 curl http://localhost:8000/v1/audio/transcriptions \
   -X POST \
@@ -151,10 +192,10 @@ pip install -y huggingface_hub tree
 huggingface-cli download openai/whisper-tiny.en --local-dir ubuntu/audio/whisper-tiny.en --local-dir-use-symlinks False --repo-type model
 
 # Ensure the whisper-tiny.en directory is next to your Dockerfile
-tree .
+tree ubuntu
 
 # Build it
-podman build -t vllm-whisper-offline -f ubuntu/audio/Dockerfile.offline ubuntu/
+podman build -t vllm-whisper-offline -f ubuntu/audio/Dockerfile.offline ubuntu/audio/
 
 # Run it
 podman run --rm -it \
